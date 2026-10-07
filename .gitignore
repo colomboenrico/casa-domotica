@@ -1,0 +1,8 @@
+sensore/sensore
+logger/logger
+
+*.db
+node_modules/
+dist/
+.vscode/
+.DS_Store

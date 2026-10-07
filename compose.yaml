@@ -1,0 +1,61 @@
+name: casa-domotica
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1884:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    restart: unless-stopped
+
+  sensore-cucina:
+    build: ./sensore
+    image: casa-sensore
+    command: ["cucina", "2"]
+    environment:
+      MQTT_HOST: mosquitto
+    depends_on: [mosquitto]
+    init: true
+    restart: unless-stopped
+
+  sensore-bagno:
+    build: ./sensore
+    image: casa-sensore
+    command: ["bagno", "3"]
+    environment:
+      MQTT_HOST: mosquitto
+    depends_on: [mosquitto]
+    init: true
+    restart: unless-stopped
+  
+  sensore-soggiorno:
+    build:  ./sensore
+    image: casa-sensore
+    command: ["soggiorno","5"]
+    environment:
+      MQTT_HOST: mosquitto
+    depends_on: [mosquitto]
+    init: true
+    restart: unless-stopped
+  logger:
+    build: ./logger
+    image: casa-logger
+    environment:
+      MQTT_HOST: mosquitto
+      DB_PATH: /data/casa.db
+    volumes:
+      - dati-db:/data
+    depends_on: [mosquitto]
+    init: true
+    restart: unless-stopped
+  dashboard:
+    build: ./dashboard
+    image: casa-dashboard
+    ports:
+      - "8085:80" 
+    restart: unless-stopped
+volumes:
+  dati-db:  
+  #docker compose exec mosquitto mosquitto_sub -t "casa/+/temperatura" -v
